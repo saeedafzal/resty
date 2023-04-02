@@ -10,7 +10,7 @@ func (u UI) baseView() *tview.Flex {
 	return flex
 }
 
-func (_ UI) createTable(title string) *tview.Table {
+func (_ UI) createTable() *tview.Table {
 	cell := func(text string) *tview.TableCell {
 		return tview.NewTableCell(text).
 			SetSelectable(false).
@@ -23,7 +23,6 @@ func (_ UI) createTable(title string) *tview.Table {
 		SetFixed(1, 1).
 		SetCell(0, 0, cell("Name")).
 		SetCell(0, 1, cell("Value"))
-	table.SetBorder(true).SetTitle(title)
 
 	return table
 }
