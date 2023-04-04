@@ -23,10 +23,7 @@ func (a API) DoRequest(requestModel model.RequestModel) (model.ResponseData, err
 	if err != nil {
 		return responseData, err
 	}
-
-	headers := requestModel.Headers
-	req.Header = headers
-	headers.Set("User-Agent", "Resty/client-0.0.1")
+	req.Header = requestModel.Headers
 
 	start := time.Now()
 	res, err := a.client.Do(req)

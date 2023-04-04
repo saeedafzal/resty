@@ -13,6 +13,8 @@ import (
 func (t TUI) responsePanel() *tview.Flex {
 	t.responseSummaryTextView.SetBorder(true).SetTitle("Response Summary")
 	t.responseBodyTextView.SetBorder(true).SetTitle("Response Body")
+	t.components[3] = t.responseSummaryTextView
+	t.components[4] = t.responseBodyTextView
 
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(t.responseSummaryTextView, 0, 1, false).
