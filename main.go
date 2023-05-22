@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/rivo/tview"
-	"github.com/saeedafzal/resty/internal/tui"
+	"github.com/saeedafzal/resty/app/tui"
 )
 
 var (
@@ -18,16 +18,16 @@ func main() {
 	flag.Parse()
 
 	if *displayVersion {
-		fmt.Println("RESTY")
+		fmt.Println("=== RESTY ===")
 		fmt.Println(fmt.Sprintf("Version:    %s", version))
 		fmt.Println(fmt.Sprintf("Build Time: %s", buildTime))
 		return
 	}
 
 	app := tview.NewApplication().EnableMouse(true)
-	ui := tui.NewUI(app)
+	ui := tui.NewTUI(app)
 
-	if err := app.SetRoot(ui.Layout(), true).Run(); err != nil {
+	if err := app.SetRoot(ui.Pages(), true).Run(); err != nil {
 		panic(err)
 	}
 }
