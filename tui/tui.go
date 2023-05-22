@@ -15,15 +15,17 @@ type TUI struct {
 	model Model
 
 	requestPanel  RequestPanel
-	responsePanel responsePanel
+	responsePanel ResponsePanel
 }
 
 func NewTUI(m Model) TUI {
-	return TUI{
-		model: m,
+	resPanel := NewResponsePanel(m)
+	reqPanel := NewRequestPanel(m, resPanel)
 
-		requestPanel:  NewRequestPanel(m),
-		responsePanel: NewResponsePanel(m),
+	return TUI{
+		model:         m,
+		requestPanel:  reqPanel,
+		responsePanel: resPanel,
 	}
 }
 
