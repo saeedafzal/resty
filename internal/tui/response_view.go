@@ -20,6 +20,7 @@ func (_ UI) responseSummaryTextView() *tview.TextView {
 }
 
 func (_ UI) responseBodyTextView() *tview.TextView {
+	responseBodyTextView.SetDynamicColors(true)
 	responseBodyTextView.SetBorder(true).SetTitle("Response Body")
 	return responseBodyTextView
 }
