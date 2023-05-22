@@ -11,6 +11,7 @@ import (
 
 func (t TUI) requestPanel() *tview.Flex {
 	t.requestBodyTextArea.SetBorder(true).SetTitle("Request Body")
+	t.components[2] = t.requestBodyTextArea
 
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(t.requestForm(), 0, 1, true).
@@ -32,6 +33,7 @@ func (t TUI) requestForm() *tview.Form {
 		AddButton("Add Header", func() { t.pages.ShowPage(addHeadersPage) }).
 		AddButton("Send", func() { t.sendRequest() })
 	form.SetBorder(true).SetTitle("Request Form")
+	t.components[0] = form
 	return form
 }
 
@@ -44,7 +46,22 @@ func (t TUI) requestSummaryPanel() *tview.Flex {
 	t.requestHeadersTable.SetBlurFunc(func() {
 		t.requestHeadersTable.SetSelectable(false, false)
 	})
+
+	t.requestHeadersTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Rune() {
+		case 'd':
+			row, _ := t.requestHeadersTable.GetSelection()
+			cell := t.requestHeadersTable.GetCell(row, 0)
+			t.requestModel.Headers.Del(cell.Text)
+			t.updateRequestHeadersTable()
+			t.app.SetFocus(t.requestHeadersTable)
+			t.requestHeadersTable.Select(0, 0)
+			return nil
+		}
+		return event
+	})
 	t.updateRequestHeadersTable()
+	t.components[1] = t.requestHeadersTable
 
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(t.requestSummaryTextView, 0, 1, false).
@@ -52,22 +69,6 @@ func (t TUI) requestSummaryPanel() *tview.Flex {
 	flex.SetBorder(true).SetTitle("Request Summary")
 
 	return flex
-}
-
-func (_ TUI) createRequestHeadersTable() *tview.Table {
-	headerCell := func(name string) *tview.TableCell {
-		return tview.NewTableCell(name).
-			SetExpansion(1).
-			SetSelectable(false).SetTextColor(tcell.ColorYellow)
-	}
-
-	table := tview.NewTable().
-		SetBorders(true).
-		SetSelectable(false, false).
-		SetFixed(0, 0).
-		SetCell(0, 0, headerCell("Name")).
-		SetCell(0, 1, headerCell("Value"))
-	return table
 }
 
 func (t TUI) addHeadersModal() *tview.Flex {
@@ -83,7 +84,7 @@ func (t TUI) addHeadersModal() *tview.Flex {
 			value = text
 		}).
 		AddButton("Add Header", func() {
-			t.requestModel.Headers.Add(name, value)
+			t.requestModel.Headers.Set(name, value)
 			t.updateRequestHeadersTable()
 		}).
 		AddButton("Cancel", func() {
@@ -98,6 +99,7 @@ func (t TUI) addHeadersModal() *tview.Flex {
 			AddItem(form, height, 1, false).
 			AddItem(nil, 0, 1, false), width, 1, false).
 		AddItem(nil, 0, 1, false)
+
 	flex.SetFocusFunc(func() {
 		t.app.SetFocus(form)
 	})
@@ -154,7 +156,6 @@ func (t TUI) sendRequest() {
 	body := t.requestBodyTextArea.GetText()
 	buffer := bytes.NewBuffer([]byte(body))
 	t.requestModel.Body = buffer
-
 
 	res, err := t.api.DoRequest(t.requestModel)
 	if err != nil {
