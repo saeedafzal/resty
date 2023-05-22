@@ -1,9 +1,11 @@
-current_time = $(shell date +"%Y-%m-%d:T%H:%M:%S")
-linker_flags = '-s -X main.buildTime=${current_time}'
+COMMIT := $(shell git rev-parse HEAD)
+VERSION := $(shell git describe --tags $(COMMIT) 2> /dev/null || echo $(COMMIT))
+COMMIT := $(shell git rev-parse --short HEAD)
+BUILD_TIME := $(shell date +%FT%T%z)
+LD_FLAGS := -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.buildTime=$(BUILD_TIME)
 
 run:
-	go run main.go
+	go run -ldflags="$(LD_FLAGS)" main.go
 
 build:
-	@echo "Building binaries..."
-	go build -ldflags=${linker_flags}
+	go build -ldflags="$(LD_FLAGS)"

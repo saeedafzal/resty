@@ -1,33 +1,33 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 
-	"github.com/rivo/tview"
-	"github.com/saeedafzal/resty/app/tui"
+	"github.com/saeedafzal/resty/tui"
+	"github.com/spf13/pflag"
 )
 
 var (
-	version   = "0.0.1"
+	version   string
+	commit    string
 	buildTime string
 )
 
 func main() {
-	displayVersion := flag.Bool("version", false, "Display application version.")
-	flag.Parse()
+	v := pflag.Bool("version", false, "Display application version.")
+	pflag.Parse()
 
-	if *displayVersion {
-		fmt.Println("=== RESTY ===")
-		fmt.Println(fmt.Sprintf("Version:    %s", version))
-		fmt.Println(fmt.Sprintf("Build Time: %s", buildTime))
+	if *v {
+		fmt.Println("=== Resty ===")
+		fmt.Printf("Version:     %s\n", version)
+		fmt.Printf("Commit:      %s\n", commit)
+		fmt.Printf("Build Time:  %s\n", buildTime)
 		return
 	}
 
-	app := tview.NewApplication().EnableMouse(true)
-	ui := tui.NewTUI(app)
-
-	if err := app.SetRoot(ui.Pages(), true).Run(); err != nil {
+	m := tui.NewModel()
+	t := tui.NewTUI(m)
+	if err := m.App.SetRoot(t.Root(), true).Run(); err != nil {
 		panic(err)
 	}
 }
