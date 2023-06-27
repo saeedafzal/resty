@@ -3,74 +3,77 @@ package tui
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-)
-
-const (
-	rootPage         = "root"
-	addHeaderPage    = "add_header_dialog"
-	updateHeaderPage = "update_header_dialog"
+	"github.com/saeedafzal/resty/model"
+	"github.com/saeedafzal/resty/tui/request"
+	"github.com/saeedafzal/resty/tui/response"
+	"github.com/saeedafzal/resty/util"
 )
 
 type TUI struct {
-	model Model
-
-	requestPanel  RequestPanel
-	responsePanel ResponsePanel
+	model *model.Model
 }
 
-func NewTUI(m Model) TUI {
-	resPanel := NewResponsePanel(m)
-	reqPanel := NewRequestPanel(m, resPanel)
-
-	return TUI{
-		model:         m,
-		requestPanel:  reqPanel,
-		responsePanel: resPanel,
-	}
+func NewTUI(model *model.Model) {
+	t := TUI{model}
+	t.init()
 }
 
-func (t TUI) Root() *tview.Pages {
-	p := t.model.pages
+// NOTE: Initialise the UI, this is the start point.
+func (t TUI) init() {
+	m := t.model
+	p := m.Pages
 
-	p.AddPage(rootPage, t.baseLayout(), true, true).
-		AddPage(addHeaderPage, t.requestPanel.addHeaderDialog(), true, false)
+	requestPanel := request.NewPanel(m)
+	responsePanel := response.NewPanel(m)
+
+	p.
+		AddPage(util.BasePage, t.rootLayout(requestPanel, responsePanel), true, true).
+		AddPage(util.AddHeaderDialogPage, requestPanel.AddHeaderDialog(), true, false)
 
 	p.SetInputCapture(t.pageInputCapture)
-	return p
 }
 
-func (t TUI) baseLayout() *tview.Flex {
-	return tview.NewFlex().
-		AddItem(t.requestPanel.Root(), 0, 1, true).
-		AddItem(t.responsePanel.Root(), 0, 1, false)
-}
-
-// ---
-
+// NOTE: Keybindings for the base page component. These are the global keybindings
+// on the highest widget in the widget tree.
 func (t TUI) pageInputCapture(event *tcell.EventKey) *tcell.EventKey {
+	m := t.model
+
+	if event.Rune() == 'q' && !m.IsInputField() && !m.IsDialog() {
+		m.App.Stop()
+		return nil
+	}
+
+	return event
+}
+
+// NOTE: Root layout.
+func (t TUI) rootLayout(requestPanel request.Panel, responsePanel response.Panel) *tview.Flex {
+	flex := tview.NewFlex().
+		AddItem(requestPanel.Root(), 0, 1, true).
+		AddItem(responsePanel.Root(), 0, 1, false)
+
+	flex.SetInputCapture(t.rootInputCapture)
+	return flex
+}
+
+// NOTE: Keybindings for the root flex layout.
+func (t TUI) rootInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	m := t.model
 
 	switch event.Key() {
 	case tcell.KeyCtrlJ:
-		m := t.model
-		i := m.getCurrentIndex() + 1
-		if i >= len(m.components) {
+		i := m.GetCurrentIndex() + 1
+		if i >= len(m.Components) {
 			i = 0
 		}
-		m.App.SetFocus(m.components[i])
+		m.App.SetFocus(m.Components[i])
 		return nil
 	case tcell.KeyCtrlK:
-		m := t.model
-		i := m.getCurrentIndex() - 1
+		i := m.GetCurrentIndex() - 1
 		if i < 0 {
-			i = len(m.components) - 1
+			i = len(m.Components) - 1
 		}
-		m.App.SetFocus(m.components[i])
-		return nil
-	}
-
-	if event.Rune() == 'q' && !m.isInputField() && !m.isDialog() {
-		m.App.Stop()
+		m.App.SetFocus(m.Components[i])
 		return nil
 	}
 

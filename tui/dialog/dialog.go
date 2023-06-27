@@ -1,8 +1,12 @@
-package tui
+package dialog
 
-import "github.com/rivo/tview"
+import (
+	"github.com/rivo/tview"
+)
 
-func dialog(p tview.Primitive) tview.Primitive {
+// Dialog defines the default layout and size for a modal component.
+// TODO: Be able to specify dimensions.
+func Dialog(p tview.Primitive) tview.Primitive {
 	return tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
