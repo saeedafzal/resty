@@ -20,14 +20,16 @@ var methods = []string{
 }
 
 func (r Panel) requestForm() *tview.Form {
+	primary := util.HexToColour("#6F00FF")
+
 	form := tview.NewForm().
 		AddDropDown("Method", methods, 0, r.requestFormDropdownHandler).
 		AddInputField("URL", "", 0, nil, r.requestFormInputHandler).
 		AddButton("Add Header", r.requestFormAddHeaderButtonHandler).
 		AddButton("Send", r.sendRequest).
 		// TODO: Colour from config
-		SetFieldBackgroundColor(util.HexToColour("#6F00FF")).
-		SetButtonBackgroundColor(util.HexToColour("#6F00FF"))
+		SetFieldBackgroundColor(primary).
+		SetButtonBackgroundColor(primary)
 
 	form.
 		SetBorder(true).
@@ -57,6 +59,7 @@ func (r Panel) requestFormAddHeaderButtonHandler() {
 func (r Panel) sendRequest() {
 	m := r.model
 
+	m.RequestData.Body = r.requestBodyTextArea.GetText()
 	res, err := r.api.DoRequest(m.RequestData)
 	if err != nil {
 		// TODO: Have some UI feedback on failed request

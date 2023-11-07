@@ -19,11 +19,20 @@ func NewAPI() API {
 
 func (a API) DoRequest(requestData model.RequestData) (model.ResponseData, error) {
 	buffer := bytes.NewBuffer([]byte(requestData.Body))
+
 	req, err := http.NewRequest(requestData.Method, requestData.Url, buffer)
 	defer a.closeResources(req.Body)
 	if err != nil {
 		return model.ResponseData{}, err
 	}
+
+	// Custom user agent (if not specified)
+	userAgent := requestData.Headers.Get("User-Agent")
+	if userAgent == "" {
+		requestData.Headers.Add("User-Agent", "RestyAgent/1.0.0")
+		defer requestData.Headers.Del("User-Agent")
+	}
+
 	req.Header = requestData.Headers
 
 	start := time.Now()

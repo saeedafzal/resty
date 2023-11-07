@@ -92,29 +92,29 @@ func (r Panel) updateResponsePanels(res model.ResponseData) {
 	contentType := r.getLangFromContentType(res.Headers.Get("Content-Type"))
 	if contentType != "plain" {
 		w := tview.ANSIWriter(r.responseBodyTextView)
-
 		buffer := &bytes.Buffer{}
 
 		if contentType == "json" {
-			if err := json.Indent(buffer, []byte(res.Body), "", "  "); err != nil {
-				// TODO: Default behaviour?
-			}
+			_ = json.Indent(buffer, []byte(res.Body), "", "  ")
 		} else {
 			buffer = bytes.NewBufferString(res.Body)
 		}
 
-		if err := quick.Highlight(
+		err := quick.Highlight(
 			w,
 			buffer.String(),
 			contentType,
 			"terminal16m",
 			"monokai", // TODO: Should be customisable
-		); err != nil {
-			// TODO: Default colour?
+		)
+
+		if err == nil {
+			return
 		}
-	} else {
-		r.responseBodyTextView.SetText(res.Body)
 	}
+
+	// Default behaviour
+	r.responseBodyTextView.SetText(res.Body)
 }
 
 // TODO: ?
