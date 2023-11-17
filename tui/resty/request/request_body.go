@@ -7,39 +7,38 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-func (r Panel) requestBodyInit() {
-	r.requestBodyTextArea.
+func (p Panel) initRequestBodyTextArea() {
+	p.requestBodyTextArea.
 		SetBorder(true).
 		SetTitle("Request Body").
-		SetInputCapture(r.responseBodyInputCapture)
+		SetInputCapture(p.responseBodyInputCapture)
 
-	r.model.Components[1] = r.requestBodyTextArea
+	p.model.Components[1] = p.requestBodyTextArea
 }
 
-func (r Panel) responseBodyInputCapture(event *tcell.EventKey) *tcell.EventKey {
+func (p Panel) responseBodyInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	if event.Key() == tcell.KeyCtrlE {
-		r.model.App.Suspend(r.startEditor)
+		p.model.App.Suspend(p.startEditor)
 		return nil
 	}
 
 	return event
 }
 
-func (r Panel) startEditor() {
-	textarea := r.requestBodyTextArea
+func (p Panel) startEditor() {
+	textarea := p.requestBodyTextArea
 	text := textarea.GetText()
 
-	// TODO: Dynamically set extension? Only if content type has been set.
-	// TODO: Set to actual temp directory
+	// TODO: Dynamically set extension? Only if content type has been set?
 	tempFile := "tmp.json"
 
-	if err := r.writeTextToFile(text, tempFile); err != nil {
+	if err := p.writeTextToFile(text, tempFile); err != nil {
 		// TODO: Display error feedback
 		return
 	}
 	defer os.Remove(tempFile)
 
-	// NOTE: Get terminal editor
+	// Get terminal editor if it exists
 	editor, exists := os.LookupEnv("EDITOR")
 	if !exists {
 		editor = "vim"
@@ -54,7 +53,7 @@ func (r Panel) startEditor() {
 		return
 	}
 
-	editedText, err := r.readTextFromFile(tempFile)
+	editedText, err := p.readTextFromFile(tempFile)
 	if err != nil {
 		// TODO: Display error feedback
 		return

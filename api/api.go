@@ -29,7 +29,7 @@ func (a API) DoRequest(requestData model.RequestData) (model.ResponseData, error
 	// Custom user agent (if not specified)
 	userAgent := requestData.Headers.Get("User-Agent")
 	if userAgent == "" {
-		requestData.Headers.Add("User-Agent", "RestyAgent/1.0.0")
+		requestData.Headers.Add("User-Agent", "RestyAgent/dev")
 		defer requestData.Headers.Del("User-Agent")
 	}
 

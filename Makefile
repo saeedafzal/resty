@@ -8,4 +8,4 @@ run:
 	go run -ldflags="$(LD_FLAGS)" main.go
 
 build:
-	go build -ldflags="$(LD_FLAGS)"
+	go build -ldflags="$(LD_FLAGS) -s -w"

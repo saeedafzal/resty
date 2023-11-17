@@ -4,78 +4,47 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"github.com/saeedafzal/resty/model"
-	"github.com/saeedafzal/resty/tui/request"
-	"github.com/saeedafzal/resty/tui/response"
-	"github.com/saeedafzal/resty/util"
+	"github.com/saeedafzal/resty/tui/resty"
+	"reflect"
+	"strings"
 )
 
+// TUI is the root layout of the entire application.
 type TUI struct {
 	model *model.Model
 }
 
-func NewTUI(model *model.Model) {
-	t := TUI{model}
-	t.init()
+func NewTUI(model *model.Model) TUI {
+	return TUI{model}
 }
 
-// NOTE: Initialise the UI, this is the start point.
-func (t TUI) init() {
-	m := t.model
-	p := m.Pages
+func (t TUI) Root() *tview.Pages {
+	// Pages
+	r := resty.NewResty(t.model)
 
-	requestPanel := request.NewPanel(m)
-	responsePanel := response.NewPanel(m)
+	pages := t.model.Pages
+	pages.AddPage("RESTY_PAGE", r.Root(), true, true)
 
-	p.
-		AddPage(util.BasePage, t.rootLayout(requestPanel, responsePanel), true, true).
-		AddPage(util.AddHeaderDialogPage, requestPanel.AddHeaderDialog(), true, false)
-
-	p.SetInputCapture(t.pageInputCapture)
+	pages.SetInputCapture(t.tuiInputCapture)
+	return pages
 }
 
-// NOTE: Keybindings for the base page component. These are the global keybindings
-// on the highest widget in the widget tree.
-func (t TUI) pageInputCapture(event *tcell.EventKey) *tcell.EventKey {
-	m := t.model
-
-	if event.Rune() == 'q' && !m.IsInputField() && !m.IsDialog() {
-		m.App.Stop()
-		return nil
+func (t TUI) tuiInputCapture(event *tcell.EventKey) *tcell.EventKey {
+	if event.Rune() == 'q' && !t.isInputField() && !t.IsDialog() {
+		t.model.App.Stop()
 	}
 
 	return event
 }
 
-// NOTE: Root layout.
-func (t TUI) rootLayout(requestPanel request.Panel, responsePanel response.Panel) *tview.Flex {
-	flex := tview.NewFlex().
-		AddItem(requestPanel.Root(), 0, 1, true).
-		AddItem(responsePanel.Root(), 0, 1, false)
-
-	flex.SetInputCapture(t.rootInputCapture)
-	return flex
+// Checks if an input field such as a [tview.TextArea] or
+// [tview.InputField] currently has focus.
+func (t TUI) isInputField() bool {
+	focusType := reflect.TypeOf(t.model.App.GetFocus()).String()
+	return focusType == "*tview.InputField" || focusType == "*tview.TextArea"
 }
 
-// NOTE: Keybindings for the root flex layout.
-func (t TUI) rootInputCapture(event *tcell.EventKey) *tcell.EventKey {
-	m := t.model
-
-	switch event.Key() {
-	case tcell.KeyCtrlJ:
-		i := m.GetCurrentIndex() + 1
-		if i >= len(m.Components) {
-			i = 0
-		}
-		m.App.SetFocus(m.Components[i])
-		return nil
-	case tcell.KeyCtrlK:
-		i := m.GetCurrentIndex() - 1
-		if i < 0 {
-			i = len(m.Components) - 1
-		}
-		m.App.SetFocus(m.Components[i])
-		return nil
-	}
-
-	return event
+func (t TUI) IsDialog() bool {
+	name, _ := t.model.Pages.GetFrontPage()
+	return strings.Contains(name, "DIALOG")
 }
