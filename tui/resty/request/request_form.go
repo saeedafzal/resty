@@ -52,9 +52,5 @@ func (p Panel) headersBtnHandler() {
 func (p Panel) doRequest() {
 	p.model.RequestData.Body = p.requestBodyTextArea.GetText()
 	res, err := p.api.DoRequest(p.model.RequestData)
-	if err != nil {
-		// TODO: Show some error feedback
-		return
-	}
-	p.model.UpdateResponseSummary(res)
+	p.model.UpdateResponseSummary(res, err)
 }

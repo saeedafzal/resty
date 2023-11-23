@@ -10,7 +10,7 @@ type Model struct {
 
 	// Callbacks
 	UpdateRequestSummary  func()
-	UpdateResponseSummary func(res ResponseData)
+	UpdateResponseSummary func(res ResponseData, err error)
 }
 
 func NewModel() *Model {

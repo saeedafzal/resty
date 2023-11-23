@@ -20,7 +20,6 @@ func NewPanel(model *model.Model) Panel {
 }
 
 func (p Panel) Root() *tview.Flex {
-	p.model.UpdateResponseSummary = p.updateResponseSummary
 	p.initResponseSummaryTextView()
 	p.initResponseBodyTextView()
 

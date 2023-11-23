@@ -37,11 +37,11 @@ func (a API) DoRequest(requestData model.RequestData) (model.ResponseData, error
 
 	start := time.Now()
 	res, err := a.client.Do(req)
-	end := time.Now().Sub(start)
-	defer a.closeResources(res.Body)
 	if err != nil {
 		return model.ResponseData{}, err
 	}
+	end := time.Now().Sub(start)
+	defer a.closeResources(res.Body)
 
 	b, err := io.ReadAll(res.Body)
 	if err != nil {

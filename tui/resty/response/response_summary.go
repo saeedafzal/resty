@@ -9,6 +9,8 @@ import (
 )
 
 func (p Panel) initResponseSummaryTextView() {
+	p.model.UpdateResponseSummary = p.updateResponseSummary
+
 	p.responseSummaryTextView.
 		SetBorder(true).
 		SetTitle("Response Summary")
@@ -16,7 +18,15 @@ func (p Panel) initResponseSummaryTextView() {
 	p.model.Components[3] = p.responseSummaryTextView
 }
 
-func (p Panel) updateResponseSummary(res model.ResponseData) {
+func (p Panel) updateResponseSummary(res model.ResponseData, err error) {
+	if err != nil {
+		doc := strings.Builder{}
+		doc.WriteString("[red::bu]ERROR[-:-:-]\n")
+		doc.WriteString(fmt.Sprintf("API call failed: %s", err))
+		p.responseSummaryTextView.SetText(doc.String())
+		return
+	}
+
 	p.updateResponseSummaryTextView(res)
 	p.updateResponseBodyTextView(res)
 }
