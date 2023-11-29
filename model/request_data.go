@@ -11,9 +11,9 @@ type RequestData struct {
 
 func NewRequestData() RequestData {
 	return RequestData{
-		Method:  http.MethodGet,
-		Url:     "",
-		Headers: make(http.Header),
-		Body:    "",
+		http.MethodGet,
+		"",
+		make(http.Header),
+		"",
 	}
 }

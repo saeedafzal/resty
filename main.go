@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 
-	"github.com/saeedafzal/resty/model"
+	"github.com/rivo/tview"
 	"github.com/saeedafzal/resty/tui"
 )
 
@@ -21,15 +22,13 @@ func main() {
 		return
 	}
 
-	// Initialise ui
-	m := model.NewModel()
-	t := tui.NewTUI(m)
+	// Setup TUI
+	app := tview.NewApplication().
+		EnableMouse(true)
 
-	m.App.SetRoot(t.Root(), true)
-
-	// Run application
-	if err := m.App.Run(); err != nil {
-		panic(err)
+	// Start application
+	if err := app.SetRoot(tui.NewTUI(app), true).Run(); err != nil {
+		log.Panicln(err)
 	}
 }
 
@@ -43,7 +42,7 @@ func flags() bool {
 
 func printVersion() {
 	fmt.Println("\n=== Resty ===")
-	fmt.Printf("Version:     %s\n", version)
-	fmt.Printf("Commit:      %s\n", commit)
-	fmt.Printf("Build Time:  %s\n", buildTime)
+	fmt.Printf("Version:    %s\n", version)
+	fmt.Printf("Commit:     %s\n", commit)
+	fmt.Printf("Build Time: %s\n", buildTime)
 }
