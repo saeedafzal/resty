@@ -1,29 +1,37 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 
 	"github.com/rivo/tview"
 	"github.com/saeedafzal/resty/tui"
+	"github.com/spf13/pflag"
 )
 
 var (
-	version   string
-	commit    string
+	version,
+	commit,
 	buildTime string
 )
 
 func main() {
-	// Version flag
-	if flags() {
+	// Flags
+	versionFlag, helpFlag := InitFlags()
+
+	if versionFlag {
 		printVersion()
 		return
 	}
 
+	if helpFlag {
+		pflag.Usage()
+		return
+	}
+
 	// Setup TUI
-	app := tview.NewApplication().
+	app := tview.
+		NewApplication().
 		EnableMouse(true)
 
 	// Start application
@@ -32,12 +40,14 @@ func main() {
 	}
 }
 
-func flags() bool {
-	var v bool
-	flag.BoolVar(&v, "v", false, "Display application version.")
-	flag.BoolVar(&v, "version", false, "Display application version.")
-	flag.Parse()
-	return v
+func InitFlags() (bool, bool) {
+	var versionFlag, helpFlag bool
+
+	pflag.BoolVarP(&versionFlag, "version", "v", false, "Display application version.")
+	pflag.BoolVarP(&helpFlag, "help", "h", false, "Help for Resty.")
+
+	pflag.Parse()
+	return versionFlag, helpFlag
 }
 
 func printVersion() {

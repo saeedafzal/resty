@@ -22,66 +22,55 @@ func (r *Resty) requestBody() *tview.TextArea {
 
 func (r *Resty) requestBodyInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	if event.Key() == tcell.KeyCtrlE {
-		r.app.Suspend(r.startEditor)
+		r.externalEditor()
 		return nil
 	}
 
 	return event
 }
 
-func (r *Resty) startEditor() {
-	// Get current text in text area
-	textarea := r.requestBodyTextArea
-	text := textarea.GetText()
-
-	// TODO: Set extension on temp file?
-	temp := "tmp"
-	if err := r.writeTextToFile(text, temp); err != nil {
-		// TODO: Error feedback
-		return
+func (r *Resty) externalEditor() {
+	file, err := os.CreateTemp("", "temp")
+	if err != nil {
+		panic(err)
 	}
-	defer os.Remove(temp)
+	defer r.closeFile(file)
 
-	// Get terminal editor or use vim as default
+	textarea := r.requestBodyTextArea
+	currentText := textarea.GetText()
+	if _, err := file.WriteString(currentText); err != nil {
+		panic(err)
+	}
+
 	editor, exists := os.LookupEnv("EDITOR")
 	if !exists {
 		editor = "vim"
 	}
 
-	// Open editor
-	cmd := exec.Command(editor, temp)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		// TODO: Error feedback
-		return
-	}
+	r.app.Suspend(func() {
+		cmd := exec.Command(editor, file.Name())
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-	editedText, err := r.readTextFromFile(temp)
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+	})
+
+	b, err := os.ReadFile(file.Name())
 	if err != nil {
-		// TODO: Error feedback
-		return
+		panic(err)
 	}
 
-	textarea.SetText(editedText, false)
+	textarea.SetText(string(b), false)
 }
 
-func (_ *Resty) writeTextToFile(text, path string) error {
-	file, err := os.Create(path)
-	if err != nil {
-		return err
+func (r *Resty) closeFile(file *os.File) {
+	if err := file.Close(); err != nil {
+		panic(err)
 	}
-	defer file.Close()
-
-	_, err = file.WriteString(text)
-	return err
-}
-
-func (_ *Resty) readTextFromFile(path string) (string, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return "", err
+	if err := os.Remove(file.Name()); err != nil {
+		panic(err)
 	}
-	return string(data), nil
 }
