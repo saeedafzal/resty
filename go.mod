@@ -4,8 +4,8 @@ go 1.21
 
 require (
 	github.com/alecthomas/chroma/v2 v2.12.0
-	github.com/gdamore/tcell/v2 v2.7.0
-	github.com/rivo/tview v0.0.0-20231206124440-5f078138442e
+	github.com/gdamore/tcell/v2 v2.6.1-0.20231203215052-2917c3801e73
+	github.com/rivo/tview v0.0.0-20240101144852-b3bd1aa5e9f2
 	github.com/spf13/pflag v1.0.5
 )
 
