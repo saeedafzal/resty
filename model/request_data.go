@@ -9,11 +9,9 @@ type RequestData struct {
 	Body    string
 }
 
-func NewRequestData() RequestData {
-	return RequestData{
-		http.MethodGet,
-		"",
-		make(http.Header),
-		"",
+func NewRequestData() *RequestData {
+	return &RequestData{
+		Method:  http.MethodGet,
+		Headers: make(http.Header),
 	}
 }

@@ -5,72 +5,68 @@ import (
 	"os/exec"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
-func (r *Resty) requestBody() *tview.TextArea {
-	textarea := r.requestBodyTextArea
+func (r Resty) initRequestBody() {
+	textarea := r.requestBody.
+		SetPlaceholder("Enter body here...")
 
 	textarea.
 		SetBorder(true).
 		SetTitle("Request Body").
-		SetInputCapture(r.requestBodyInputCapture)
+		SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			if event.Key() == tcell.KeyCtrlE {
+				r.startExternalEditor()
+				return nil
+			}
+
+			return event
+		})
 
 	r.components[1] = textarea
-	return textarea
 }
 
-func (r *Resty) requestBodyInputCapture(event *tcell.EventKey) *tcell.EventKey {
-	if event.Key() == tcell.KeyCtrlE {
-		r.externalEditor()
-		return nil
-	}
-
-	return event
-}
-
-func (r *Resty) externalEditor() {
-	file, err := os.CreateTemp("", "temp")
+func (r Resty) startExternalEditor() {
+	// Create temp file to open
+	f, err := os.CreateTemp(os.TempDir(), "*.tmp")
 	if err != nil {
 		panic(err)
 	}
-	defer r.closeFile(file)
+	defer f.Close()
+	defer os.Remove(f.Name())
 
-	textarea := r.requestBodyTextArea
-	currentText := textarea.GetText()
-	if _, err := file.WriteString(currentText); err != nil {
+	// Get request body and write into file
+	currentText := r.requestBody.GetText()
+	if _, err := f.WriteString(currentText); err != nil {
 		panic(err)
 	}
 
-	editor, exists := os.LookupEnv("EDITOR")
-	if !exists {
+	// Get editor
+	editor, ok := os.LookupEnv("EDITOR")
+	if !ok {
 		editor = "vim"
 	}
 
+	// Suspend application and launch editor
 	r.app.Suspend(func() {
-		cmd := exec.Command(editor, file.Name())
+		cmd := exec.Command(editor, f.Name())
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-
 		if err := cmd.Run(); err != nil {
 			panic(err)
 		}
 	})
 
-	b, err := os.ReadFile(file.Name())
+	// FIXME: https://github.com/rivo/tview/issues/932
+	nscr, _ := tcell.NewScreen()
+	r.app.SetScreen(nscr)
+
+	// Read file
+	b, err := os.ReadFile(f.Name())
 	if err != nil {
 		panic(err)
 	}
 
-	textarea.SetText(string(b), false)
-}
-
-func (r *Resty) closeFile(file *os.File) {
-	if err := file.Close(); err != nil {
-		panic(err)
-	}
-	if err := os.Remove(file.Name()); err != nil {
-		panic(err)
-	}
+	r.requestBody.SetText(string(b), false)
 }

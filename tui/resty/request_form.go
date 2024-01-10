@@ -3,10 +3,13 @@ package resty
 import (
 	"net/http"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"github.com/saeedafzal/resty/api"
+	"github.com/saeedafzal/resty/helper"
 )
 
-var httpMethods = []string{
+var methods = []string{
 	http.MethodGet,
 	http.MethodPost,
 	http.MethodPut,
@@ -18,12 +21,34 @@ var httpMethods = []string{
 	http.MethodConnect,
 }
 
-func (r *Resty) requestForm() *tview.Form {
+func (r Resty) requestForm() *tview.Form {
+	req := r.requestData
+
 	form := tview.NewForm().
-		AddDropDown("Method", httpMethods, 0, r.dropdownHandler).
-		AddInputField("URL", "", 0, nil, r.inputHandler).
-		AddButton("Headers", r.headersBtnHandler).
-		AddButton("Send", r.sendRequest)
+		SetButtonBackgroundColor(tcell.ColorIndigo).
+		SetFieldBackgroundColor(tcell.ColorIndigo).
+		AddDropDown("Method", methods, 0, func(option string, _ int) {
+			req.Method = option
+			r.updateRequestSummary()
+		}).
+		AddInputField("URL", "", 0, nil, func(text string) {
+			req.Url = text
+			r.updateRequestSummary()
+		}).
+		AddButton("Headers", func() {
+			r.pages.AddAndSwitchToPage(helper.HEADER_DIALOG, r.headersDialog(), true)
+		}).
+		AddButton("Send", func() {
+			r.requestData.Body = r.requestBody.GetText()
+			res, err := api.DoRequest(r.requestData)
+			if err != nil {
+				r.updateResponseSummaryError(err)
+				r.responseBody.SetText("")
+				return
+			}
+			r.updateResponseSummary(res)
+			r.updateResponseBody(res)
+		})
 
 	form.
 		SetBorder(true).
@@ -31,28 +56,4 @@ func (r *Resty) requestForm() *tview.Form {
 
 	r.components[0] = form
 	return form
-}
-
-func (r *Resty) dropdownHandler(option string, _ int) {
-	r.requestData.Method = option
-	r.updateRequestSummary()
-}
-
-func (r *Resty) inputHandler(text string) {
-	r.requestData.Url = text
-	r.updateRequestSummary()
-}
-
-func (r *Resty) headersBtnHandler() {
-	r.pages.AddAndSwitchToPage("HEADERS_DIALOG", r.headersDialog(), true)
-}
-
-func (r *Resty) sendRequest() {
-	r.requestData.Body = r.requestBodyTextArea.GetText()
-	res, err := r.api.DoRequest(r.requestData)
-	r.responseBodyTextView.Clear()
-	r.UpdateResponseSummaryTextView(res, err)
-	if err == nil {
-		r.updateResponseBody(res)
-	}
 }

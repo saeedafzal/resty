@@ -5,32 +5,29 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rivo/tview"
 	"github.com/saeedafzal/resty/model"
 )
 
-func (r *Resty) responseSummary() *tview.TextView {
-	textview := r.responseSummaryTextView
+func (r Resty) initResponseSummary() {
+	textview := r.responseSummary.
+		SetDynamicColors(true).
+		SetText("...")
 
 	textview.
 		SetBorder(true).
 		SetTitle("Response Summary")
 
 	r.components[3] = textview
-	return textview
 }
 
-func (r *Resty) UpdateResponseSummaryTextView(res model.ResponseData, err error) {
-	// Display error
-	if err != nil {
-		doc := strings.Builder{}
-		doc.WriteString("[red::bu]ERROR[-:-:-]\n")
-		doc.WriteString(fmt.Sprintf("API call failed: %s", err))
-		r.responseSummaryTextView.SetText(doc.String())
-		return
-	}
+func (r Resty) updateResponseSummaryError(err error) {
+	doc := strings.Builder{}
+	doc.WriteString("[red::bu]ERROR[-:-:-]\n")
+	doc.WriteString(fmt.Sprintf("API call failed: %s", err))
+	r.responseSummary.SetText(doc.String())
+}
 
-	// Display response data
+func (r Resty) updateResponseSummary(res *model.ResponseData) {
 	// Set the colour of the response status
 	colour := "-"
 	if res.StatusCode >= 500 {
@@ -59,5 +56,5 @@ func (r *Resty) UpdateResponseSummaryTextView(res model.ResponseData, err error)
 		doc.WriteString(fmt.Sprintf("%s: %s\n", k, res.Headers.Get(k)))
 	}
 
-	r.responseSummaryTextView.SetText(doc.String())
+	r.responseSummary.SetText(doc.String())
 }

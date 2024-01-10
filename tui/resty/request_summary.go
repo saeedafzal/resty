@@ -1,38 +1,34 @@
 package resty
 
 import (
-	"fmt"
 	"strings"
-
-	"github.com/rivo/tview"
 )
 
-func (r *Resty) requestSummary() *tview.TextView {
-	r.updateRequestSummary()
-
-	textview := r.requestSummaryTextView
+func (r Resty) initRequestSummary() {
+	textview := r.requestSummary.
+		SetDynamicColors(true)
 
 	textview.
 		SetBorder(true).
-		SetTitle("Request Summary Meh")
+		SetTitle("Request Summary")
 
-	r.components[2] = textview
-	return textview
+	r.updateRequestSummary()
 }
 
-func (r *Resty) updateRequestSummary() {
+func (r Resty) updateRequestSummary() {
 	req := r.requestData
 
-	doc := strings.Builder{}
-	doc.WriteString("Method: " + req.Method + "\n")
-	doc.WriteString("URL:    " + req.Url + "\n\n")
+	b := strings.Builder{}
+	b.WriteString("Method: [-:-:b]" + req.Method + "[-:-:-]\n")
+	b.WriteString("URL:    [-:-:b]" + req.Url + "[-:-:-]\n\n")
+	b.WriteString("[yellow:-:b]Headers:[-:-:-]")
 
-	doc.WriteString("[yellow:-:b]Headers[-:-:-]")
 	for k, v := range req.Headers {
-		doc.WriteString(fmt.Sprintf("\n%s: %s", k, v[0]))
+		b.WriteString("\n" + k + ": " + strings.Join(v, ","))
 	}
 
-	// Set the text of the textview
-	textview := r.requestSummaryTextView
-	textview.SetText(doc.String())
+	r.requestSummary.Clear()
+	r.requestSummary.SetText(b.String())
+
+	r.components[2] = r.requestSummary
 }

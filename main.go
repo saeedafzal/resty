@@ -2,57 +2,48 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/rivo/tview"
 	"github.com/saeedafzal/resty/tui"
 	"github.com/spf13/pflag"
 )
 
-var (
-	version,
-	commit,
-	buildTime string
-)
+var version string
 
 func main() {
-	// Flags
-	versionFlag, helpFlag := InitFlags()
-
-	if versionFlag {
-		printVersion()
+	// Handle CLI flags and exit if necessary
+	if flags() {
 		return
 	}
 
-	if helpFlag {
-		pflag.Usage()
-		return
-	}
+	// Start terminal ui
+	app := tview.NewApplication()
+	tui := tui.New(app)
 
-	// Setup TUI
-	app := tview.
-		NewApplication().
-		EnableMouse(true)
+	app.
+		EnableMouse(true).
+		SetRoot(tui.Root(), true)
 
-	// Start application
-	if err := app.SetRoot(tui.NewTUI(app), true).Run(); err != nil {
-		log.Panicln(err)
+	if err := app.Run(); err != nil {
+		panic(err)
 	}
 }
 
-func InitFlags() (bool, bool) {
-	var versionFlag, helpFlag bool
-
-	pflag.BoolVarP(&versionFlag, "version", "v", false, "Display application version.")
-	pflag.BoolVarP(&helpFlag, "help", "h", false, "Help for Resty.")
-
+func flags() bool {
+	var v, h bool
+	pflag.BoolVarP(&v, "version", "v", false, "Display application version.")
+	pflag.BoolVarP(&h, "help", "h", false, "Usage of Resty.")
 	pflag.Parse()
-	return versionFlag, helpFlag
-}
 
-func printVersion() {
-	fmt.Println("\n=== Resty ===")
-	fmt.Printf("Version:    %s\n", version)
-	fmt.Printf("Commit:     %s\n", commit)
-	fmt.Printf("Build Time: %s\n", buildTime)
+	if v {
+		fmt.Println("Resty", version)
+		return true
+	}
+
+	if h {
+		pflag.Usage()
+		return true
+	}
+
+	return false
 }

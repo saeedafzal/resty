@@ -9,53 +9,47 @@ import (
 	"github.com/saeedafzal/resty/model"
 )
 
-type API struct {
-	client http.Client
-}
-
-func NewAPI() API {
-	return API{http.Client{}}
-}
-
-func (a API) DoRequest(requestData model.RequestData) (model.ResponseData, error) {
+func DoRequest(requestData *model.RequestData) (*model.ResponseData, error) {
+	// Body to buffer
 	buffer := bytes.NewBuffer([]byte(requestData.Body))
 
+	// Create request
 	req, err := http.NewRequest(requestData.Method, requestData.Url, buffer)
-	defer a.closeResources(req.Body)
 	if err != nil {
-		return model.ResponseData{}, err
+		return nil, err
 	}
+	defer req.Body.Close()
 
-	// Custom user agent (if not specified)
+	// Custom user-agent if not specified
 	userAgent := requestData.Headers.Get("User-Agent")
 	if userAgent == "" {
 		requestData.Headers.Add("User-Agent", "RestyAgent/dev")
 		defer requestData.Headers.Del("User-Agent")
 	}
 
+	// Set headers on the request
 	req.Header = requestData.Headers
 
+	// Do request
 	start := time.Now()
-	res, err := a.client.Do(req)
-	if err != nil {
-		return model.ResponseData{}, err
-	}
+	res, err := http.DefaultClient.Do(req)
 	end := time.Now().Sub(start)
-	defer a.closeResources(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
 
+	// Read response body
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
-		return model.ResponseData{}, err
+		return nil, err
 	}
 
-	return model.ResponseData{
+	// Return response
+	return &model.ResponseData{
 		StatusCode: res.StatusCode,
 		Time:       end.Milliseconds(),
 		Body:       string(b),
 		Headers:    res.Header,
 	}, nil
-}
-
-func (a API) closeResources(buffer io.ReadCloser) {
-	_ = buffer.Close()
 }

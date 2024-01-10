@@ -10,46 +10,51 @@ import (
 	"github.com/saeedafzal/resty/model"
 )
 
-func (r *Resty) responseBody() *tview.TextView {
-	textview := r.responseBodyTextView
+func (r Resty) initResponseBody() {
+	textview := r.responseBody.
+		SetDynamicColors(true).
+		SetText("...")
 
 	textview.
 		SetBorder(true).
-		SetTitle("Response Summary")
+		SetTitle("Response Body")
 
 	r.components[4] = textview
-	return textview
 }
 
-func (r *Resty) updateResponseBody(res model.ResponseData) {
+func (r Resty) updateResponseBody(res *model.ResponseData) {
+	r.responseBody.Clear()
+
 	contentType := res.Headers.Get("Content-Type")
 	lang := r.getLangFromContentType(contentType)
 
 	if lang != "plain" {
 		// Add syntax highlighting
-		w := tview.ANSIWriter(r.responseBodyTextView)
+		w := tview.ANSIWriter(r.responseBody)
 		buffer := bytes.Buffer{}
 
-		// If json, make sure response is indented
+		// Add indentation to json
 		if contentType == "json" {
-			_ = json.Indent(&buffer, []byte(res.Body), "", "  ")
+			if err := json.Indent(&buffer, []byte(res.Body), "", "  "); err != nil {
+				buffer = *bytes.NewBufferString(res.Body)
+			}
 		} else {
 			buffer = *bytes.NewBufferString(res.Body)
 		}
 
-		err := quick.Highlight(
+		// Add highlight
+		if err := quick.Highlight(
 			w,
 			buffer.String(),
 			lang,
 			"terminal16m",
 			"monokai",
-		)
-		if err == nil {
+		); err == nil {
 			return
 		}
 	}
 
-	r.responseBodyTextView.SetText(res.Body)
+	r.responseBody.SetText(res.Body)
 }
 
 func (_ *Resty) getLangFromContentType(contentType string) string {
