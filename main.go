@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/rivo/tview"
+	"github.com/saeedafzal/resty/helper"
 	"github.com/saeedafzal/resty/tui"
 	"github.com/spf13/pflag"
+	"go.etcd.io/bbolt"
 )
 
 var version string
@@ -16,16 +19,25 @@ func main() {
 		return
 	}
 
+	// Start bbolt
+	db, err := bbolt.Open("dev.db", 0600, nil)
+	if err != nil || createBuckets(db) != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	// Debug logs
+
 	// Start terminal ui
 	app := tview.NewApplication()
-	tui := tui.New(app)
+	tui := tui.New(app, db)
 
 	app.
 		EnableMouse(true).
 		SetRoot(tui.Root(), true)
 
 	if err := app.Run(); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 }
 
@@ -46,4 +58,11 @@ func flags() bool {
 	}
 
 	return false
+}
+
+func createBuckets(db *bbolt.DB) error {
+	return db.Update(func(tx *bbolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists(helper.ENV_BUCKET)
+		return err
+	})
 }
