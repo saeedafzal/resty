@@ -1,54 +1,19 @@
 package resty
 
 import (
-	"net/http"
-
-	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 	"github.com/saeedafzal/resty/api"
-	"github.com/saeedafzal/resty/helper"
+	"github.com/rivo/tview"
+	"github.com/saeedafzal/resty/tui/modal"
 )
 
-var methods = []string{
-	http.MethodGet,
-	http.MethodPost,
-	http.MethodPut,
-	http.MethodDelete,
-	http.MethodHead,
-	http.MethodOptions,
-	http.MethodTrace,
-	http.MethodPatch,
-	http.MethodConnect,
-}
+var methods = []string{"GET", "POST", "PUT", "DELETE"}
 
 func (r Resty) requestForm() *tview.Form {
-	req := r.requestData
-
 	form := tview.NewForm().
-		SetButtonBackgroundColor(tcell.ColorIndigo).
-		SetFieldBackgroundColor(tcell.ColorIndigo).
-		AddDropDown("Method", methods, 0, func(option string, _ int) {
-			req.Method = option
-			r.updateRequestSummary()
-		}).
-		AddInputField("URL", "", 0, nil, func(text string) {
-			req.Url = text
-			r.updateRequestSummary()
-		}).
-		AddButton("Headers", func() {
-			r.pages.AddAndSwitchToPage(helper.HEADER_DIALOG, r.headersDialog(), true)
-		}).
-		AddButton("Send", func() {
-			r.requestData.Body = r.requestBody.GetText()
-			res, err := api.DoRequest(r.requestData)
-			if err != nil {
-				r.updateResponseSummaryError(err)
-				r.responseBody.SetText("")
-				return
-			}
-			r.updateResponseSummary(res)
-			r.updateResponseBody(res)
-		})
+		AddDropDown("Method", methods, 0, r.requestFormDropDownSelected).
+		AddInputField("URL", "", 0, nil, r.requestFormInputFieldChanged).
+		AddButton("Add Headers", r.requestFormAddHeadersBtnSelected).
+		AddButton("Send", r.requestFormSendBtnSelected)
 
 	form.
 		SetBorder(true).
@@ -56,4 +21,37 @@ func (r Resty) requestForm() *tview.Form {
 
 	r.components[0] = form
 	return form
+}
+
+func (r Resty) requestFormDropDownSelected(option string, _ int) {
+	r.requestData.Method = option
+	r.updateRequestSummary()
+}
+
+func (r Resty) requestFormInputFieldChanged(text string) {
+	r.requestData.Url = text
+	r.updateRequestSummary()
+}
+
+func (r Resty) requestFormAddHeadersBtnSelected() {
+	r.pages.AddPage(
+		"header",
+		modal.HeaderModal(r.pages, "Add Header", "", "", r.addHeaderAddSelected),
+		true,
+		true,
+	)
+}
+
+func (r Resty) requestFormSendBtnSelected() {
+	r.requestData.Body = r.requestBodyTextArea.GetText()
+
+	res, err := api.DoRequest(r.requestData)
+	if err != nil {
+		r.updateResponseSummaryError(err)
+		r.responseBodyTextView.Clear()
+		return
+	}
+
+	r.updateResponseSummary(res)
+	r.updateResponseBody(res)
 }

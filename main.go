@@ -1,47 +1,42 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/rivo/tview"
 	"github.com/saeedafzal/resty/tui"
-	"github.com/spf13/pflag"
 )
 
 var version string
 
 func main() {
-	// Handle CLI flags and exit if necessary
 	if flags() {
 		return
 	}
 
-	// Start terminal ui
-	app := tview.NewApplication()
+	app := tview.NewApplication().
+		EnableMouse(true).
+		EnablePaste(true)
 	tui := tui.New(app)
 
-	app.
-		EnableMouse(true).
-		SetRoot(tui.Root(), true)
-
-	if err := app.Run(); err != nil {
+	if err := app.SetRoot(tui.Root(), true).Run(); err != nil {
 		panic(err)
 	}
 }
 
 func flags() bool {
-	var v, h bool
-	pflag.BoolVarP(&v, "version", "v", false, "Display application version.")
-	pflag.BoolVarP(&h, "help", "h", false, "Usage of Resty.")
-	pflag.Parse()
+	v := flag.Bool("version", false, "Show application version.")
+	h := flag.Bool("help", false, "Usage of resty.")
+	flag.Parse()
 
-	if v {
-		fmt.Println("Resty", version)
+	if *v {
+		fmt.Println("Resty:", version)
 		return true
 	}
 
-	if h {
-		pflag.Usage()
+	if *h {
+		flag.Usage()
 		return true
 	}
 

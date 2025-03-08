@@ -1,42 +1,36 @@
 package tui
 
 import (
-	"strings"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"github.com/saeedafzal/resty/helper"
 	"github.com/saeedafzal/resty/tui/resty"
 )
 
-type TUI struct {
+type Tui struct {
 	app   *tview.Application
 	pages *tview.Pages
 }
 
-func New(app *tview.Application) TUI {
-	return TUI{app, tview.NewPages()}
+func New(app *tview.Application) Tui {
+	return Tui{app, tview.NewPages()}
 }
 
-func (t TUI) Root() *tview.Pages {
+func (t Tui) Root() *tview.Pages {
 	resty := resty.New(t.app, t.pages)
 
 	t.pages.
-		AddPage(helper.RESTY_PAGE, resty.Root(), true, true)
+		AddPage("resty", resty.Root(), true, true)
 
-	t.pages.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Rune() == 'q' && !t.isDialog() {
-			t.app.Stop()
-			return nil
-		}
-
-		return event
-	})
+	t.pages.SetInputCapture(t.rootInputCapture)
 
 	return t.pages
 }
 
-func (t TUI) isDialog() bool {
-	name, _ := t.pages.GetFrontPage()
-	return strings.Contains(name, "DIALOG")
+func (t Tui) rootInputCapture(event *tcell.EventKey) *tcell.EventKey {
+	if event.Rune() == 'q' {
+		t.app.Stop()
+		return nil
+	}
+
+	return event
 }

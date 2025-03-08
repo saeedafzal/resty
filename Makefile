@@ -1,9 +1,8 @@
-COMMIT   := $(shell git rev-list --tags --max-count=1)
-VERSION  := $(shell git describe --tags $(COMMIT))
+VERSION := $(shell cat VERSION)
 LD_FLAGS := -X main.version=$(VERSION)
 
 build:
-	go build -ldflags="$(LD_FLAGS) -s -w"
+	go build -ldflags="$(LD_FLAGS) -s -w" -o bin/resty
 
 run: build
-	./resty
+	./bin/resty
