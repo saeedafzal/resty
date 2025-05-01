@@ -2,7 +2,7 @@ package modal
 
 import (
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
+	"github.com/saeedafzal/tview"
 )
 
 func NewModal(p tview.Primitive, width, height int) *tview.Flex {

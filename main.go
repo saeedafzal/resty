@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/rivo/tview"
+	"github.com/saeedafzal/tview"
 	"github.com/saeedafzal/resty/tui"
 )
 

@@ -3,7 +3,7 @@ package resty
 import (
 	"strings"
 
-	"github.com/rivo/tview"
+	"github.com/saeedafzal/tview"
 )
 
 func (r Resty) requestSummary() *tview.Flex {

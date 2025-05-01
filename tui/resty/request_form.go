@@ -2,7 +2,7 @@ package resty
 
 import (
 	"github.com/saeedafzal/resty/api"
-	"github.com/rivo/tview"
+	"github.com/saeedafzal/tview"
 	"github.com/saeedafzal/resty/tui/modal"
 )
 
