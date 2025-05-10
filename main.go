@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/saeedafzal/tview"
 	"github.com/saeedafzal/resty/tui"
+	"github.com/saeedafzal/tview"
 )
 
 var version string

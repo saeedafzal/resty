@@ -2,8 +2,8 @@ package resty
 
 import (
 	"github.com/gdamore/tcell/v2"
-	"github.com/saeedafzal/tview"
 	"github.com/saeedafzal/resty/model"
+	"github.com/saeedafzal/tview"
 )
 
 type Resty struct {

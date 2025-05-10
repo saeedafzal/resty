@@ -1,9 +1,10 @@
 package resty
 
 import (
-	"github.com/saeedafzal/resty/api"
-	"github.com/saeedafzal/tview"
+	"github.com/saeedafzal/resty/core"
+
 	"github.com/saeedafzal/resty/tui/modal"
+	"github.com/saeedafzal/tview"
 )
 
 var methods = []string{"GET", "POST", "PUT", "DELETE"}
@@ -45,7 +46,7 @@ func (r Resty) requestFormAddHeadersBtnSelected() {
 func (r Resty) requestFormSendBtnSelected() {
 	r.requestData.Body = r.requestBodyTextArea.GetText()
 
-	res, err := api.DoRequest(r.requestData)
+	res, err := core.DoRequest(r.requestData)
 	if err != nil {
 		r.updateResponseSummaryError(err)
 		r.responseBodyTextView.Clear()

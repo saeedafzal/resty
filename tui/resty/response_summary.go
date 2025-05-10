@@ -1,10 +1,10 @@
 package resty
 
 import (
-	"strings"
 	"fmt"
 	"maps"
 	"slices"
+	"strings"
 
 	"github.com/saeedafzal/resty/model"
 )

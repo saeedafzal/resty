@@ -2,8 +2,10 @@ package tui
 
 import (
 	"github.com/gdamore/tcell/v2"
-	"github.com/saeedafzal/tview"
+
 	"github.com/saeedafzal/resty/tui/resty"
+
+	"github.com/saeedafzal/tview"
 )
 
 type Tui struct {

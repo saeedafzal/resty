@@ -1,20 +1,21 @@
 package resty
 
 import (
-	"encoding/json"
-	"strings"
 	"bytes"
-	"log/slog"
-	"io"
+	"encoding/json"
 	"errors"
+	"io"
+	"log/slog"
+	"strings"
 
+	"github.com/saeedafzal/resty/core"
 	"github.com/saeedafzal/resty/model"
 
-	"github.com/saeedafzal/tview"
-
+	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/alecthomas/chroma/v2/styles"
-	"github.com/alecthomas/chroma/v2/formatters"
+	"github.com/gdamore/tcell/v2"
+	"github.com/saeedafzal/tview"
 )
 
 func (r Resty) initResponseBodyTextView() {
@@ -23,7 +24,8 @@ func (r Resty) initResponseBodyTextView() {
 
 	textview.
 		SetBorder(true).
-		SetTitle("Response Body")
+		SetTitle("Response Body").
+		SetInputCapture(r.responseBodyTextViewInputCapture)
 
 	r.components[4] = textview
 }
@@ -64,4 +66,15 @@ func (r Resty) updateResponseBody(res *model.ResponseData) {
 	if err3 := formatter.Format(w, style, iterator); errors.Join(err1, err2, err3) != nil {
 		r.responseBodyTextView.SetText(displayData)
 	}
+}
+
+func (r Resty) responseBodyTextViewInputCapture(event *tcell.EventKey) *tcell.EventKey {
+	text := r.responseBodyTextView.GetText(true)
+
+	if event.Key() == tcell.KeyCtrlE && text != "" {
+		core.OpenEditor(r.app, text, true)
+		return nil
+	}
+
+	return event
 }

@@ -1,8 +1,7 @@
 package resty
 
 import (
-	"os"
-	"os/exec"
+	"github.com/saeedafzal/resty/core"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -21,33 +20,8 @@ func (r Resty) initRequestBodyTextArea() {
 
 func (r Resty) requestBodyTextAreaInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	if event.Key() == tcell.KeyCtrlE {
-		f, err := os.CreateTemp("", "body")
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-		defer os.Remove(f.Name())
-
-		if _, err := f.WriteString(r.requestBodyTextArea.GetText()); err != nil {
-			panic(err)
-		}
-
-		r.app.Suspend(func() {
-			cmd := exec.Command("nvim", f.Name())
-			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			if err := cmd.Run(); err != nil {
-				panic(err)
-			}
-		})
-
-		b, err := os.ReadFile(f.Name())
-		if err != nil {
-			panic(err)
-		}
-
-		r.requestBodyTextArea.SetText(string(b), false)
+		text := core.OpenEditor(r.app, r.requestBodyTextArea.GetText(), false)
+		r.requestBodyTextArea.SetText(text, false)
 		return nil
 	}
 
